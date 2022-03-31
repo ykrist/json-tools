@@ -115,7 +115,7 @@ dependencies = [
  "anyhow",
  "clap",
  "indexmap",
- "libc",
+ "posix-cli-utils",
  "regex",
  "serde",
  "serde_json",
@@ -146,6 +146,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e22443d1643a904602595ba1cd8f7d896afe56d26712531c5ff73a15b2fbf64"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "posix-cli-utils"
+version = "0.1.0"
+source = "git+https://github.com/ykrist/posix-cli-utils.git#110c893c50e246708970a5b4fc1931c608534faf"
+dependencies = [
+ "anyhow",
+ "clap",
+ "libc",
 ]
 
 [[package]]

@@ -9,11 +9,19 @@ default-run = "json-resolve"
 anyhow = "1.0.56"
 clap = { version = "3.1.6", features = ["derive"] }
 indexmap = { version = "1.8.1", features = ["serde"] }
-libc = "0.2.121"
 regex = "1.5.5"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.79"
+posix-cli-utils = { git = "https://github.com/ykrist/posix-cli-utils.git" }
 
 [[bin]]
 name = "json-resolve"
 path = "src/json_resolve.rs"
+
+[[bin]]
+name = "json-flatten"
+path = "src/json_flatten.rs"
+
+[[bin]]
+name = "json2csv"
+path = "src/json2csv.rs"

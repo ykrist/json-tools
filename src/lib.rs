@@ -1,33 +1,45 @@
-pub use anyhow::{Result, anyhow, bail, Context};
+use std::io::{Read, Write};
 use std::fs::File;
-use std::io::{self, BufReader};
+use posix_cli_utils::*;
+use serde::Serializer;
+use serde_json::{de::IoRead, Deserializer, Value};
 use std::path::Path;
 
-#[cfg(unix)]
-pub fn reset_sigpipe() {
-    unsafe {
-        libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+pub trait RunStreamJson: Sized {
+    fn process_one<S>(&mut self, value: Value, output: S) -> Result<()>
+    where
+        S: Serializer,
+        S::Error: Send + Sync + 'static;
+
+    fn main<R: Read>(&mut self, input: Input<R>) -> Result<()> {
+        match input {
+            Input::File(file) => run_json_stream_impl(file, self),
+            Input::Stdin(input) => run_json_stream_impl(input, self),
+        }
     }
 }
 
-#[cfg(not(unix))]
-pub fn reset_sigpipe() {
-    // no-op
-}
+fn run_json_stream_impl<R, T>(input: R, run: &mut T) -> Result<()>
+where
+    T: RunStreamJson,
+    R: Read,
+{
+    let stream = Deserializer::new(IoRead::new(input)).into_iter::<Value>();
+    let mut stdout = std::io::stdout();
 
-pub enum Input {
-    File(BufReader<File>),
-    Stdin(io::Stdin),
-}
-
-pub fn open_file_or_stdin<P: AsRef<Path>>(path: Option<P>) -> Result<Input> {
-    if let Some(path) = path {
-        let path = path.as_ref();
-        File::open(path)
-            .map(BufReader::new)
-            .map(Input::File)
-            .with_context(|| format!("unable to read {}", path.display()))
-    } else {
-        Ok(Input::Stdin(std::io::stdin()))
+    for value in stream {
+        let mut output = serde_json::Serializer::new(stdout.lock());
+        run.process_one(value?, &mut output)?;
+        drop(output);
+        stdout.write_all(b"\n")?;
     }
+    Ok(())
+}
+
+pub fn load_json(path: impl AsRef<Path>) -> Result<Value> {
+    let path = path.as_ref();
+    let file = File::open(path)
+        .with_context(|| format!("failed to read {}", path.display()))?;
+    serde_json::from_reader(file)
+        .with_context(|| format!("failed to parse {}", path.display()))
 }

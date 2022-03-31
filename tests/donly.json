@@ -1,0 +1,14 @@
+{
+  "a": 12,
+  "b": [
+    "hello"
+  ],
+  "c": "c.json",
+  "d": {
+    "c": "c.json",
+    "foo": "bar"
+  },
+  "e": {
+    "e.json": false
+  }
+}
