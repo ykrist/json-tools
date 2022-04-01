@@ -1,8 +1,8 @@
-use std::io::{Read, Write};
-use std::fs::File;
 use posix_cli_utils::*;
 use serde::Serializer;
 use serde_json::{de::IoRead, Deserializer, Value};
+use std::fs::File;
+use std::io::{Read, Write};
 use std::path::Path;
 
 pub trait RunStreamJson: Sized {
@@ -38,8 +38,24 @@ where
 
 pub fn load_json(path: impl AsRef<Path>) -> Result<Value> {
     let path = path.as_ref();
-    let file = File::open(path)
-        .with_context(|| format!("failed to read {}", path.display()))?;
-    serde_json::from_reader(file)
-        .with_context(|| format!("failed to parse {}", path.display()))
+    let file = File::open(path).with_context(|| format!("failed to read {}", path.display()))?;
+    serde_json::from_reader(file).with_context(|| format!("failed to parse {}", path.display()))
+}
+
+pub trait ValueExt {
+    fn kind(&self) -> &'static str;
+}
+
+impl ValueExt for Value {
+    fn kind(&self) -> &'static str {
+        use Value::*;
+        match self {
+            Array(_) => "array",
+            Object(_) => "object",
+            Null => "null",
+            String(_) => "string",
+            Number(_) => "number",
+            Bool(_) => "boolean",
+        }
+    }
 }

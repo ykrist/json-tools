@@ -1,16 +1,16 @@
-use std::{path::PathBuf, fmt::{Display}, collections::HashMap};
+use std::{collections::HashMap, fmt::Display, path::PathBuf};
 
+use indexmap::IndexMap;
 use json_tools::*;
 use posix_cli_utils::*;
 use serde::Serialize;
 use serde_json::Value;
-use indexmap::IndexMap;
 use std::fmt::Write;
 
 #[derive(Debug, Clone, Args)]
 struct Flatten {
-    /// Separater to use when concatenating keys 
-    #[clap(short='d', default_value=".")]
+    /// Separater to use when concatenating keys
+    #[clap(short = 'd', default_value = ".")]
     sep: String,
 }
 
@@ -20,7 +20,7 @@ struct Args {
     /// Input JSON file (defaults to STDIN)
     input: Option<PathBuf>,
     /// Unflatten instead
-    #[clap(short='u')]
+    #[clap(short = 'u')]
     unflatten: bool,
     #[clap(flatten)]
     options: Flatten,
@@ -31,13 +31,15 @@ struct Args {
 enum UnflattenTree {
     Branch(HashMap<String, UnflattenTree>),
     Empty,
-    Leaf(Value)
+    Leaf(Value),
 }
 
 impl UnflattenTree {
-    fn has_children(&self) -> bool { matches!(self, UnflattenTree::Branch(_)) }
-    
-    fn insert<'a>(&mut self, mut keys: impl Iterator<Item=&'a str>, value: Value) {
+    fn has_children(&self) -> bool {
+        matches!(self, UnflattenTree::Branch(_))
+    }
+
+    fn insert<'a>(&mut self, mut keys: impl Iterator<Item = &'a str>, value: Value) {
         if let Some(key) = keys.next() {
             match self {
                 UnflattenTree::Empty | UnflattenTree::Leaf(_) => {
@@ -48,15 +50,14 @@ impl UnflattenTree {
                             .insert(keys, value);
                         m
                     });
-
-                },
+                }
                 UnflattenTree::Branch(map) => {
                     if !map.contains_key(key) {
                         map.insert(key.to_string(), UnflattenTree::Empty);
                     }
                     map.get_mut(key).unwrap().insert(keys, value);
                 }
-            } 
+            }
         } else if !self.has_children() {
             *self = UnflattenTree::Leaf(value);
         }
@@ -64,10 +65,14 @@ impl UnflattenTree {
 }
 
 impl Flatten {
-    fn recurse<I, K>(self: &Flatten, output: &mut IndexMap<String, Value>, current_key: String, items: I)
-    where
+    fn recurse<I, K>(
+        self: &Flatten,
+        output: &mut IndexMap<String, Value>,
+        current_key: String,
+        items: I,
+    ) where
         K: Display,
-        I: IntoIterator<Item=(K, Value)>,
+        I: IntoIterator<Item = (K, Value)>,
     {
         for (k, val) in items {
             let mut key = current_key.clone();
@@ -80,24 +85,29 @@ impl Flatten {
         }
     }
 
-    fn flatten(&self, output: &mut IndexMap<String, Value>, current_key: String, current_value: Value) {    
+    fn flatten(
+        &self,
+        output: &mut IndexMap<String, Value>,
+        current_key: String,
+        current_value: Value,
+    ) {
         match current_value {
             Value::Array(items) => self.recurse(output, current_key, items.into_iter().enumerate()),
             Value::Object(items) => self.recurse(output, current_key, items),
-            
+
             scalar => {
                 output.insert(current_key, scalar);
-            },
+            }
         }
     }
-     
+
     fn unflatten(&self, input: Value) -> Result<UnflattenTree> {
         let input = match input {
             Value::Object(x) => x,
             _ => bail!("top-level object must be to be object type"),
         };
         let mut tree = UnflattenTree::Empty;
-        
+
         for (key, value) in input {
             tree.insert(key.split(&*self.sep), value);
         }
@@ -110,7 +120,7 @@ impl RunStreamJson for Flatten {
     fn process_one<S>(&mut self, value: Value, output: S) -> Result<()>
     where
         S: serde::Serializer,
-        S::Error: Send + Sync + 'static 
+        S::Error: Send + Sync + 'static,
     {
         if value.is_object() || value.is_array() {
             let mut flat = IndexMap::new();
@@ -129,7 +139,7 @@ impl RunStreamJson for Unflatten {
     fn process_one<S>(&mut self, value: Value, output: S) -> Result<()>
     where
         S: serde::Serializer,
-        S::Error: Send + Sync + 'static 
+        S::Error: Send + Sync + 'static,
     {
         let value = self.0.unflatten(value)?;
         value.serialize(output)?;
@@ -144,7 +154,7 @@ fn main() -> Result<()> {
         Unflatten(args.options).main(input)
     } else {
         args.options.main(input)
-    }    
+    }
 }
 
 #[cfg(test)]
@@ -154,7 +164,9 @@ mod tests {
     use super::*;
 
     fn options() -> Flatten {
-        Flatten { sep: ".".to_string() }
+        Flatten {
+            sep: ".".to_string(),
+        }
     }
 
     fn unflatten(value: Value) -> Value {
@@ -162,7 +174,7 @@ mod tests {
         let u = serde_json::to_string(&u).unwrap();
         serde_json::from_str(&u).unwrap()
     }
-    
+
     fn flatten(value: Value) -> Value {
         let mut m = IndexMap::new();
         options().flatten(&mut m, String::new(), value);

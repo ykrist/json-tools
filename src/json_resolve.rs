@@ -1,25 +1,25 @@
+use clap::{Args, Parser};
 use json_tools::*;
 use posix_cli_utils::*;
-use regex::{Regex};
-use serde::{Serializer, Serialize};
-use std::{path::{PathBuf}};
-use serde_json::{Value};
-use clap::{Args, Parser};
+use regex::Regex;
+use serde::{Serialize, Serializer};
+use serde_json::Value;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Args)]
 struct Resolve {
     /// Print error messages to STDERR when files match the regex but cannot be opened
-    #[clap(short='v')]
+    #[clap(short = 'v')]
     verbose: bool,
     /// Set the regex used to identify strings as filenames
     #[clap(short='m', parse(try_from_str=Regex::new), default_value=r"\.json$")]
     regex: Regex,
     /// Enable recursive resolution
-    #[clap(short='r')]
+    #[clap(short = 'r')]
     recursion: bool,
     /// Specify directories to search in. If input is a file, default search path
     /// is the file's parent directory.  Otherwise the search path is the current working directory.
-    #[clap(short='d')]
+    #[clap(short = 'd')]
     directories: Vec<PathBuf>,
 }
 
@@ -28,7 +28,7 @@ struct ClArgs {
     /// Input JSON file (defaults to STDIN)
     input: Option<PathBuf>,
     #[clap(flatten)]
-    options: Resolve
+    options: Resolve,
 }
 
 impl Resolve {
@@ -38,25 +38,25 @@ impl Resolve {
                 list.iter_mut().for_each(|v| self.resolve(v));
                 return;
             }
-                
+
             Value::Object(map) => {
                 map.values_mut().for_each(|v| self.resolve(v));
                 return;
             }
-                
+
             Value::String(s) if self.regex.is_match(s) => &*s,
-    
+
             _ => return,
         };
-    
+
         let mut replacement = None;
         for d in &self.directories {
             let p = d.join(filename);
             match load_json(p) {
-                Ok(v) => { 
+                Ok(v) => {
                     replacement = Some(v);
                     break;
-                },
+                }
                 Err(e) => {
                     if self.verbose {
                         eprintln!("{:?}\n", e);
@@ -85,7 +85,6 @@ impl RunStreamJson for Resolve {
     }
 }
 
-
 fn main() -> Result<()> {
     reset_sigpipe();
     let mut args = ClArgs::parse();
@@ -94,7 +93,9 @@ fn main() -> Result<()> {
 
     if args.options.directories.is_empty() {
         if let Some(ref filename) = args.input {
-            args.options.directories.push(filename.parent().unwrap().to_path_buf());
+            args.options
+                .directories
+                .push(filename.parent().unwrap().to_path_buf());
         } else {
             args.options.directories.push(std::env::current_dir()?);
         }
@@ -105,14 +106,14 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
     use super::*;
+    use std::path::Path;
 
     fn options() -> Resolve {
-        Resolve { 
-            verbose: true, 
-            regex: Regex::new(r"\.json$").unwrap(), 
-            recursion: false, 
+        Resolve {
+            verbose: true,
+            regex: Regex::new(r"\.json$").unwrap(),
+            recursion: false,
             directories: vec!["tests/".into()],
         }
     }

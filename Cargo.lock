@@ -41,6 +41,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "buf-min"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4531c8a9fe2fb94e0d2afdf6bb4effd4797baf98dd26b6e20be71a92ac78e8d"
+
+[[package]]
 name = "clap"
 version = "3.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -119,6 +125,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "v_escape",
 ]
 
 [[package]]
@@ -291,6 +298,25 @@ name = "unicode-xid"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
+
+[[package]]
+name = "v_escape"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79d297315e8ca0b98255614f409699ea189e5929e820f07f69afcebf96c41f9b"
+dependencies = [
+ "buf-min",
+ "v_escape_derive",
+]
+
+[[package]]
+name = "v_escape_derive"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fe81cf194472e6ddd6545f8e91ee9780de636194c2e896b8ac201ac78389809"
+dependencies = [
+ "syn",
+]
 
 [[package]]
 name = "version_check"
