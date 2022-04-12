@@ -1,19 +1,19 @@
 [package]
 name = "json-tools"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 default-run = "json-resolve"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.56"
-clap = { version = "3.1.6", features = ["derive"] }
-indexmap = { version = "1.8.1", features = ["serde"] }
-regex = "1.5.5"
-serde = { version = "1.0.136", features = ["derive"] }
-serde_json = "1.0.79"
+anyhow = "^1.0"
+clap = { version = "^3.1", features = ["derive"] }
+indexmap = { version = "^1.8", features = ["serde"] }
+regex = "^1.5"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = {version = "^1.0", features = ["preserve_order"] }
 posix-cli-utils = { git = "https://github.com/ykrist/posix-cli-utils.git" }
-v_escape = "0.18.0"
+v_escape = { version = "^0.18" }
 
 [[bin]]
 name = "json-resolve"
