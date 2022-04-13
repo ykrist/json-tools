@@ -148,6 +148,7 @@ impl RunStreamJson for Unflatten {
 }
 
 fn main() -> Result<()> {
+    reset_sigpipe();
     let mut args = Args::parse();
     let input = Input::default_stdin(args.input.as_ref())?;
     if args.unflatten {

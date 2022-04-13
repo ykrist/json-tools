@@ -135,6 +135,8 @@ impl Json2Csv {
 }
 
 fn main() -> Result<()> {
+    reset_sigpipe();
+    
     let ClArgs {
         input,
         options: json2csv,
