@@ -83,7 +83,7 @@ impl Json2Csv {
         for value in serde_json::Deserializer::new(IoRead::new(input)).into_iter::<Value>() {
             let object = match value? {
                 Value::Object(m) => m,
-                other => bail!("expected JSON object, not {}", other.kind()),
+                other => bail!("expected JSON object, not {}", other.type_name()),
             };
             let mut row = vec![OutputField::Empty; header.len()];
             for (key, value) in object {
@@ -136,7 +136,7 @@ impl Json2Csv {
 
 fn main() -> Result<()> {
     reset_sigpipe();
-    
+
     let ClArgs {
         input,
         options: json2csv,
